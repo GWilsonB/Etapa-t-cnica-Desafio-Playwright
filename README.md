@@ -18,6 +18,7 @@ pytest
 |---|---|
 | `pytest` | Roda tudo em paralelo (4 processos), sem abrir o navegador |
 | `pytest --headed -n 0` | Roda com o navegador visível, um teste por vez |
+| `pytest --headed --slowmo 1000` | Roda com o navegador visível, com um delay para a melhor visualização |
 | `pytest tests/test_login.py` | Roda um arquivo |
 | `ruff check .` · `ruff format --check .` · `mypy` | Lint, formatação e tipos |
 
