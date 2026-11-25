@@ -1,0 +1,23 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = [
+    "--numprocesses=4",
+    "--tracing=retain-on-failure",
+    "--video=retain-on-failure",
+    "--screenshot=only-on-failure",
+    "--output=test-results",
+    "--html=reports/report.html",
+    "--self-contained-html",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "PT"]
+
+[tool.mypy]
+strict = true
+files = ["support", "pages", "tests"]

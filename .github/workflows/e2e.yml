@@ -1,0 +1,73 @@
+name: E2E
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 11 * * 1-5" # weekdays, 08:00 in Brasília
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Front URL
+        default: https://front.serverest.dev
+      api_url:
+        description: API URL
+        default: https://serverest.dev
+  workflow_call:
+    inputs:
+      base_url:
+        type: string
+        default: https://front.serverest.dev
+      api_url:
+        type: string
+        default: https://serverest.dev
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Lint and types
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: mypy
+
+  e2e:
+    name: E2E tests
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BASE_URL: ${{ inputs.base_url || 'https://front.serverest.dev' }}
+      API_URL: ${{ inputs.api_url || 'https://serverest.dev' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: playwright install --with-deps chromium
+      - run: pytest --numprocesses=2 --reruns=1
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: e2e-evidence
+          path: |
+            reports/
+            test-results/
+          retention-days: 14
